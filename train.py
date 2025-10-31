@@ -105,9 +105,11 @@ def compute_loss(logits: torch.Tensor, labels: torch.Tensor, obs_tokens: torch.T
     total = max(1, n1 + n2)
     f1, f2 = n1 / total, n2 / total
 
-    # inverse-frequency weights, clipped for stability
-    w1 = float(min(max(0.5 / max(1e-6, f1), 0.5), 5.0))
-    w2 = float(min(max(0.5 / max(1e-6, f2), 0.5), 5.0))
+    # # inverse-frequency weights, clipped for stability
+    # w1 = float(min(max(0.5 / max(1e-6, f1), 0.5), 5.0))
+    # w2 = float(min(max(0.5 / max(1e-6, f2), 0.5), 5.0))
+    w1 = 1
+    w2 = 1
 
     class_weights = torch.tensor([1.0, w1, w2, 1.0], device=logits.device)
     return F.cross_entropy(logits_m, labels_m, weight=class_weights)
@@ -121,7 +123,6 @@ def estimate_masked_accuracy(logits: torch.Tensor, labels: torch.Tensor, obs_tok
         acc = (correct / total) if total > 0 else 0.0
         return {"masked_edge_acc": acc}
 
-
 def train_one_epoch(model, loader, device, optimizer) -> Dict[str, float]:
     model.train()
     total_loss = 0.0; total_acc = 0.0; count = 0
@@ -132,14 +133,14 @@ def train_one_epoch(model, loader, device, optimizer) -> Dict[str, float]:
         node_feats = batch['node_feats'].to(device)
         B = base_adj.shape[0]
         t = torch.rand((B,), device=device)
-        m = t ** 2
+        m = t
         obs = torch.stack([mask_with_schedule(labels[b:b+1], float(m[b].item())).squeeze(0) for b in range(B)], dim=0)
         optimizer.zero_grad()
         logits = model(base_adj, node_feats, obs, t)
-        m = cls2_metrics(logits.detach(), labels, obs)
-        total_cls2_prec += m["cls2_prec"]
-        total_cls2_rec  += m["cls2_rec"]
-        total_frac2     += m["masked_frac_2"]
+        metrics = cls2_metrics(logits.detach(), labels, obs)
+        total_cls2_prec += metrics["cls2_prec"]
+        total_cls2_rec  += metrics["cls2_rec"]
+        total_frac2     += metrics["masked_frac_2"]
         loss = compute_loss(logits, labels, obs)
         loss.backward(); optimizer.step()
         total_loss += float(loss.item())

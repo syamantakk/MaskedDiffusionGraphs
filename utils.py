@@ -15,7 +15,7 @@ def set_seed(seed: int = 42):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
-def noise_schedule(t: torch.Tensor, kind: str = "poly2",
+def noise_schedule(t: torch.Tensor, kind: str = "linear",
                    min_m: float = 0.02, max_m: float = 0.95) -> torch.Tensor:
     """
     Map t in [0,1] -> masking prob m(t). We clip to avoid empty/all-masked batches.
@@ -37,7 +37,6 @@ def fourier_time_embed(t: torch.Tensor, dim: int = 32, max_freq: float = 10.0) -
     emb = torch.cat([torch.sin(phases), torch.cos(phases)], dim=-1)  # (B,2*dim)
     return emb
 
-
 def mask_with_schedule(labels: torch.Tensor, m: float) -> torch.Tensor:
     """Mask only {1,2} tokens to 3 with probability m. Keep 0s visible.
     labels: (B,V,V) int64 in {0,1,2} -> returns obs_tokens in {0,1,2,3}
@@ -52,7 +51,6 @@ def mask_with_schedule(labels: torch.Tensor, m: float) -> torch.Tensor:
     diag = torch.arange(V, device=labels.device)
     obs[:, diag, diag] = 0
     return obs
-
 
 def assert_shapes_and_types(base_adj: torch.Tensor, labels: torch.Tensor, node_feats: torch.Tensor):
     B, V, V2 = base_adj.shape

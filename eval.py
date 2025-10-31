@@ -1,5 +1,4 @@
-# File: eval.py
-
+# eval.py
 from __future__ import annotations
 from typing import List, Tuple, Dict
 import numpy as np
@@ -7,7 +6,6 @@ import networkx as nx
 import torch
 from torch.utils.data import DataLoader
 from inference import sequential_unmask_unconstrained_sampling
-
 
 def extract_valid_path_component(pred_tokens: np.ndarray, base_adj: np.ndarray) -> Tuple[bool, List[int]]:
     V = pred_tokens.shape[0]
@@ -30,11 +28,17 @@ def extract_valid_path_component(pred_tokens: np.ndarray, base_adj: np.ndarray) 
                     best_path = p
     return (len(best_path) >= 2), best_path
 
-
-def evaluate_valid_path_rate(model, loader: DataLoader, device: torch.device,
-                             edge_select: str = 'greedy', edge_select_temp: float = 1.0, token_temp: float = 1.0,
-                             visualize_cb=None) -> Dict[str, float]:
-    valid_count = 0; total = 0; did_vis = False
+def evaluate_valid_path_rate(
+    model,
+    loader: DataLoader,
+    device: torch.device,
+    edge_select: str = 'greedy',
+    edge_select_temp: float = 1.0,
+    token_temp: float = 1.0,
+    visualize_cb=None,
+    num_plots: int = 1,       # <= NEW
+) -> Dict[str, float]:
+    valid_count = 0; total = 0; plotted = 0
     for batch in loader:
         base_adj = batch['base_adj'][0].to(device)
         node_feats = batch['node_feats'][0].to(device)
@@ -43,8 +47,10 @@ def evaluate_valid_path_rate(model, loader: DataLoader, device: torch.device,
             edge_select=edge_select, edge_select_temp=edge_select_temp, token_temp=token_temp)
         ok, path_nodes = extract_valid_path_component(pred_tokens, base_adj.cpu().numpy())
         valid_count += 1 if ok else 0; total += 1
-        if (visualize_cb is not None) and (not did_vis):
-            visualize_cb(base_adj.cpu().numpy(), pred_tokens, path_nodes,
-                         title=f"Valid path: {ok} | length: {max(0, len(path_nodes)-1)}")
-            did_vis = True
+
+        if (visualize_cb is not None) and (plotted < num_plots):
+            title = f"Valid path: {ok} | length: {max(0, len(path_nodes)-1)}"
+            visualize_cb(base_adj.cpu().numpy(), pred_tokens, path_nodes, title=title)
+            plotted += 1
+
     return {"valid_path_rate": valid_count / max(1, total)}

@@ -6,7 +6,6 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-
 def choose_edge(mask: torch.Tensor, scores: torch.Tensor, mode: str = 'sample', temperature: float = 1.0) -> Tuple[int,int]:
     """Select which masked edge to reveal next.
     mask: (V,V) bool; scores: (V,V) float (e.g., max prob over {1,2}).
@@ -27,7 +26,6 @@ def choose_edge(mask: torch.Tensor, scores: torch.Tensor, mode: str = 'sample', 
         idx = torch.multinomial(probs, 1).item()
         return idx // V, idx % V
 
-
 def sample_token_from_probs(prob_vec: torch.Tensor, classes=(1,2), temperature: float = 1.0) -> int:
     """Given per-class probs (size 4 over {0,1,2,3}), sample from the subset `classes` after
     restricting to those classes and re-normalizing with temperature.
@@ -41,7 +39,6 @@ def sample_token_from_probs(prob_vec: torch.Tensor, classes=(1,2), temperature: 
     p = p / p.sum()
     k = torch.multinomial(p, 1).item()
     return int(sel[k].item())
-
 
 def sequential_unmask_unconstrained_sampling(model,
                                              base_adj: torch.Tensor,
