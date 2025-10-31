@@ -21,7 +21,7 @@ pip install --index-url https://download.pytorch.org/whl/cpu torch
 pip install networkx matplotlib numpy
 
 # 3) Train + evaluate + visualize one example
-python main.py --device cpu \
+python3 main.py --device cpu \
   --num_graphs 100 --pairs_per_graph 10 --epochs 10 \
   --edge_select sample --token_temp 1.0
 ```
@@ -120,7 +120,7 @@ pip install networkx matplotlib numpy
 ### CPU
 
 ```bash
-python main.py --device cpu \
+python3 main.py --device cpu \
   --num_graphs 100 --pairs_per_graph 10 --epochs 10 \
   --edge_select sample --token_temp 1.0
 ```
@@ -128,7 +128,7 @@ python main.py --device cpu \
 ### GPU
 
 ```bash
-python main.py --device cuda \
+python3 main.py --device cuda \
   --num_graphs 100 --pairs_per_graph 10 --epochs 10 \
   --edge_select sample --token_temp 1.0
 ```
@@ -160,7 +160,7 @@ By default, `main.py` shows **one** example after evaluation. Quick options:
 * **Change the seed**:
 
   ```bash
-  python main.py --device cpu --seed 123 --edge_select sample --token_temp 0.9
+  python3 main.py --device cpu --seed 123 --edge_select sample --token_temp 0.9
   ```
 * **(Optional) Edit `eval.py`**: set `did_vis = False` multiple times or add a counter to show more than one item.
 
@@ -169,7 +169,7 @@ By default, `main.py` shows **one** example after evaluation. Quick options:
 ## Sanity Checks (small, fast)
 
 ```bash
-python sanity.py
+python3 sanity.py
 ```
 
 This will:
